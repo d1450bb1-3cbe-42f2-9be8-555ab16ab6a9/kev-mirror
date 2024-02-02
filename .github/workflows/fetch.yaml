@@ -1,0 +1,24 @@
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron: '5 5 * * *'
+
+name: Fetch CISA KEV catalog
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: curl -O https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json
+      - run: |-
+          git add -AN
+          if git diff --exit-code; then
+            echo "no update"
+          else
+            git -c user.name=gha-fetch -c "user.email=gha-fetch@users.noreply.github.com" commit -a -m "KEV update"
+            git push
+          fi
